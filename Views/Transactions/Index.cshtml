@@ -1,0 +1,77 @@
+@model List<AviatorPnL.Models.Transaction>
+
+@{
+    ViewData["Title"] = "Manage Transactions";
+}
+
+<h2>Manage Transactions</h2>
+
+<button id="openModalBtn" class="btn btn-dark">Add Transaction</button>
+
+<table class="table table-striped mt-3">
+    <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>Date</th>
+            <th>Deposit</th>
+            <th>Withdrawal</th>
+            <th>Profit/Loss</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody id="transactionTable">
+        @foreach (var transaction in Model)
+        {
+            <tr>
+                <td>@transaction.Id</td>
+                <td>@transaction.Date.ToShortDateString()</td>
+                <td>@transaction.Deposit</td>
+                <td>@transaction.Withdrawal</td>
+                <td style="color: @(transaction.Withdrawal - transaction.Deposit >= 0 ? "green" : "red")">
+                    @(transaction.Withdrawal - transaction.Deposit > 0 ? "+" : "")@(transaction.Withdrawal -
+                    transaction.Deposit)
+            </td>
+
+            <td>
+                <button class="btn btn-primary btn-sm editBtn" data-id="@transaction.Id">Edit</button>
+                <button class="btn btn-danger btn-sm deleteBtn" data-id="@transaction.Id">Delete</button>
+            </td>
+        </tr>
+                }
+    </tbody>
+</table>
+
+<!-- Modal -->
+<div class="modal fade" id="transactionModal" tabindex="-1" aria-labelledby="transactionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="transactionModalLabel">Transaction</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="transactionForm">
+                    <input type="hidden" id="transactionId">
+                    <div class="mb-3">
+                        <label for="date" class="form-label">Date:</label>
+                        <input type="date" id="date" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="deposit" class="form-label">Deposit:</label>
+                        <input type="number" id="deposit" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="withdrawal" class="form-label">Withdrawal:</label>
+                        <input type="number" id="withdrawal" class="form-control">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">Save</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/transactions.js"></script>
