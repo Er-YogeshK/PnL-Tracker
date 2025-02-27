@@ -57,19 +57,21 @@
 <script>
     document.addEventListener("DOMContentLoaded", async function () {
         try {
-            var selectedYear = @ViewBag.SelectedYear;
-            const response = await fetch(`/PnL/GetYearlyProfitLoss?year=${selectedYear}`); // Fetch yearly P&L from the API
-            const data = await response.json();
+            var selectedYear = @(ViewBag.SelectedYear);
+            if (selectedYear && selectedYear > 0) {
+                const response = await fetch(`/PnL/GetYearlyProfitLoss?year=${selectedYear}`); // Fetch yearly P&L from the API
+                const data = await response.json();
 
-            let profitLossElement = document.getElementById("yearlyProfitLoss");
-            let profitLossValue = data.profitLoss.toFixed(2); // Format to 2 decimal places
+                let profitLossElement = document.getElementById("yearlyProfitLoss");
+                let profitLossValue = data.profitLoss.toFixed(2); // Format to 2 decimal places
 
-            if (data.profitLoss > 0) {
-                profitLossElement.innerHTML = `Year P&L: <span class="text-success">+₹${profitLossValue}</span>`;
-            } else if (data.profitLoss < 0) {
-                profitLossElement.innerHTML = `Year P&L: <span class="text-danger">-₹${Math.abs(profitLossValue)}</span>`;
-            } else {
-                profitLossElement.innerHTML = `Year P&L: <span class="text-warning">₹0.00</span>`;
+                if (data.profitLoss > 0) {
+                    profitLossElement.innerHTML = `Year P&L: <span class="text-success">+₹${profitLossValue}</span>`;
+                } else if (data.profitLoss < 0) {
+                    profitLossElement.innerHTML = `Year P&L: <span class="text-danger">-₹${Math.abs(profitLossValue)}</span>`;
+                } else {
+                    profitLossElement.innerHTML = `Year P&L: <span class="text-warning">₹0.00</span>`;
+                }
             }
         } catch (error) {
             console.error("Error fetching yearly profit/loss:", error);

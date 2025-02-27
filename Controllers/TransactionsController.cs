@@ -18,10 +18,18 @@ namespace PnL.Controllers
             _profitLossService = profitLossService;
         }
 
-        public IActionResult Index()
+        public IActionResult Index(int? year)
         {
-            var transactions = _context.Transactions.OrderByDescending(t => t.Date).ToList();
-            return View(transactions);
+            var transactions = _context.Transactions.AsQueryable();
+
+            if (year.HasValue && year > 0)
+            {
+                transactions = transactions.Where(t => t.Date.Year == year);
+            }
+
+            var orderedTransactions = transactions.OrderByDescending(t => t.Date).ToList();
+            ViewBag.SelectedYear = year ?? -1; // Pass selected year to the view
+            return View(orderedTransactions);
         }
 
         [HttpPost]

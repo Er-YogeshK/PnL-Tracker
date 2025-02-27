@@ -2,12 +2,18 @@ document.addEventListener("DOMContentLoaded", function () {
     const modal = new bootstrap.Modal(document.getElementById("transactionModal"));
     const form = document.getElementById("transactionForm");
 
+    // Get selected year from the dropdown (if exists)
+    const yearFilter = document.getElementById("yearFilter");
+    let selectedYear = yearFilter ? yearFilter.value : "";
+
+    // Open Modal for Adding Transaction
     document.getElementById("openModalBtn").addEventListener("click", function () {
         document.getElementById("transactionId").value = "";
         form.reset();
         modal.show();
     });
 
+    // Handle Form Submission (Add / Update)
     form.onsubmit = async function (event) {
         event.preventDefault();
         const id = document.getElementById("transactionId").value;
@@ -24,10 +30,14 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         const data = await response.json();
-        if (response.ok) location.reload();
-        else alert(data.message);
+        if (response.ok) {
+            location.href = selectedYear ? `/Transactions?year=${selectedYear}` : "/Transactions";
+        } else {
+            alert(data.message);
+        }
     };
 
+    // Edit Transaction
     document.querySelectorAll(".editBtn").forEach(button => {
         button.addEventListener("click", function () {
             const row = this.closest("tr").children;
@@ -39,12 +49,19 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
+    // Delete Transaction
     document.querySelectorAll(".deleteBtn").forEach(button => {
         button.addEventListener("click", async function () {
             if (confirm("Are you sure?")) {
                 await fetch(`/Transactions/DeleteTransaction?id=${this.dataset.id}`, { method: "GET" });
-                location.reload();
+                location.href = selectedYear ? `/Transactions?year=${selectedYear}` : "/Transactions";
             }
         });
+    });
+
+    // Handle Year Filtering
+    yearFilter.addEventListener("change", function () {
+        let year = this.value;
+        location.href = year ? `/Transactions?year=${year}` : "/Transactions";
     });
 });
