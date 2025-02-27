@@ -21,17 +21,16 @@ namespace PnL.Controllers
 
         public IActionResult Index(int? year)
         {
-            int selectedYear = year ?? DateTime.Now.Year; // Default to current year if not provided
+            int selectedYear = year ?? DateTime.Now.Year; // Default to current year
 
             var dailySummaries = _context.DailySummaries
                 .Include(d => d.Transactions)
-                .Where(d => d.Date.Year == selectedYear) // Filter by selected year
+                .Where(d => d.Date.Year == selectedYear) // Ensure filtering by year
                 .ToList();
 
             ViewBag.SelectedYear = selectedYear; // Pass selected year to the view
             return View(dailySummaries);
         }
-
 
         [HttpPost]
         public IActionResult AddTransaction([FromBody] TransactionEntryDto entry)

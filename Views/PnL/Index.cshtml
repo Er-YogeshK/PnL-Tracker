@@ -1,30 +1,30 @@
 @model List<PnL.Models.DailySummary>
 @{
     ViewData["Title"] = "Profit & Loss Calendar";
+    int selectedYear = ViewBag.SelectedYear ?? DateTime.Now.Year;
 }
 
 <div class="container mt-4">
     <!-- Year Filter and Add Entry Button -->
-<div class="d-flex justify-content-between align-items-center">
-    <!-- Year Filter -->
-    <div>
-         <label for="yearFilter" class="fw-bold me-2">Select Year:</label>
-    <select id="yearFilter" class="form-select d-inline-block w-auto">
-        @for (int year = DateTime.Now.Year - 5; year <= DateTime.Now.Year + 5; year++)
-        {
-            <option value="@year" selected="@(year == ViewBag.SelectedYear ? "selected" : null)">
-                @year
-            </option>
-        }
-    </select>
-    </div>
+    <div class="d-flex justify-content-between align-items-center">
+        <!-- Year Filter -->
+        <div>
+            <label for="yearFilter" class="fw-bold me-2">Select Year:</label>
+            <select id="yearFilter" class="form-select d-inline-block w-auto">
+                @for (int year = DateTime.Now.Year - 5; year <= DateTime.Now.Year + 5; year++)
+                {
+                    <option value="@year" selected="@(year == selectedYear ? "selected" : null)">
+                        @year
+                    </option>
+                }
+            </select>
+        </div>
 
-    <!-- Add Entry Button -->
-    <div>
-        <button id="openModalBtn" class="btn btn-dark">Add Entry</button>
+        <!-- Add Entry Button -->
+        <div>
+            <button id="openModalBtn" class="btn btn-dark">Add Entry</button>
+        </div>
     </div>
-</div>
-
 </div>
 
 <!-- Calendar Display -->
@@ -32,7 +32,7 @@
     <div class="row">
         @for (int month = 1; month <= 12; month++)
         {
-            var monthTransactions = Model.Where(d => d.Date.Month == month);
+            var monthTransactions = Model.Where(d => d.Date.Year == selectedYear && d.Date.Month == month);
             var totalMonthDeposit = monthTransactions.Sum(d => d.Transactions.Sum(t => t.Deposit));
             var totalMonthWithdrawal = monthTransactions.Sum(d => d.Transactions.Sum(t => t.Withdrawal));
             var totalMonthProfitLoss = totalMonthWithdrawal - totalMonthDeposit;
@@ -45,27 +45,27 @@
                 <div class="card shadow-sm">
                     <div class="card-header text-center text-white @monthColorClass">
                         <h5 class="mb-0">
-                            @(new DateTime(DateTime.Now.Year, month, 1).ToString("MMMM")) 
+                            @(new DateTime(selectedYear, month, 1).ToString("MMMM")) 
                             <br> <small>@profitLossText</small>
                         </h5>
                     </div>
                     <div class="card-body">
                         <div class="d-flex flex-wrap">
-                            @for (int day = 1; day <= DateTime.DaysInMonth(DateTime.Now.Year, month); day++)
+                            @for (int day = 1; day <= DateTime.DaysInMonth(selectedYear, month); day++)
                             {
-                                var date = new DateTime(DateTime.Now.Year, month, day);
+                                var date = new DateTime(selectedYear, month, day);
                                 var dailySummary = Model.FirstOrDefault(d => d.Date.Date == date.Date);
                                 var totalDeposit = dailySummary?.Transactions.Sum(t => t.Deposit) ?? 0;
                                 var totalWithdrawal = dailySummary?.Transactions.Sum(t => t.Withdrawal) ?? 0;
                                 var profitLoss = totalWithdrawal - totalDeposit;
-                                
+
                                 // Color logic for day background
                                 string colorClass = profitLoss > 0 ? "#9de79d" : profitLoss < 0 ? "#ff8384" : "#f4f4f4";
 
                                 // Tooltip content
-                               var tooltipContent = dailySummary?.Transactions.Any() == true
-                                ? $"Total Deposit: {dailySummary.Transactions.Sum(t => t.Deposit)}, Total Withdrawal: {dailySummary.Transactions.Sum(t => t.Withdrawal)}"
-                                : "No transactions";
+                                var tooltipContent = dailySummary?.Transactions.Any() == true
+                                    ? $"Total Deposit: {totalDeposit}, Total Withdrawal: {totalWithdrawal}"
+                                    : "No transactions";
 
                                 <div class="text-center m-1 position-relative" 
                                      style="width: 40px; height: 40px; line-height: 40px; background-color: @colorClass; border: 1px solid #ccc; font-weight: bold;" 
@@ -115,8 +115,9 @@
     </div>
 </div>
 
+<!-- JavaScript -->
 <script>
-    // Open modal
+     // Open modal
     document.getElementById("openModalBtn").addEventListener("click", function () {
         var myModal = new bootstrap.Modal(document.getElementById("entryModal"));
         myModal.show();
@@ -159,12 +160,9 @@
             new bootstrap.Tooltip(tooltipTriggerEl);
         });
     });
-</script>
 
-<script>
     document.getElementById("yearFilter").addEventListener("change", function () {
         const selectedYear = this.value;
-        window.location.href = `/?year=${selectedYear}`; // Pass year as a query parameter
+        window.location.href = `/PnL/Index?year=${selectedYear}`; // Reload page with selected year
     });
 </script>
-
