@@ -73,5 +73,19 @@ namespace PnL.Controllers
 
             return Json(new { profitLoss = totalProfitLoss, year = selectedYear });
         }
+
+        [HttpGet]
+        public JsonResult GetOverallProfitLoss()
+        {
+            var transactions = _context.DailySummaries
+            .SelectMany(d => d.Transactions)
+            .ToList();
+
+            decimal totalDeposit = transactions.Sum(t => t.Deposit);
+            decimal totalWithdrawal = transactions.Sum(t => t.Withdrawal);
+            decimal totalProfitLoss = totalWithdrawal - totalDeposit; // Net P&L
+
+            return Json(new { profitLoss = totalProfitLoss });
+        }
     }
 }

@@ -27,7 +27,10 @@
                             <a class="nav-link" href="/Transactions">Transactions</a>
                         </li>
                     </ul>
-                    <span class="navbar-text ms-auto text-white fw-bold" id="yearlyProfitLoss">
+                    <span class="navbar-text ms-auto p-1 text-white fw-bold" id="yearlyProfitLoss">
+                        <!-- Profit/Loss will be dynamically loaded -->
+                    </span>
+                    <span class="navbar-text p-1 text-white fw-bold" id="overallProfitLoss">
                         <!-- Profit/Loss will be dynamically loaded -->
                     </span>
                 </div>
@@ -54,18 +57,37 @@
 <script>
     document.addEventListener("DOMContentLoaded", async function () {
         try {
-            const response = await fetch("/PnL/GetYearlyProfitLoss"); // Fetch yearly P&L from the API
+            var selectedYear = @ViewBag.SelectedYear;
+            const response = await fetch(`/PnL/GetYearlyProfitLoss?year=${selectedYear}`); // Fetch yearly P&L from the API
             const data = await response.json();
 
             let profitLossElement = document.getElementById("yearlyProfitLoss");
             let profitLossValue = data.profitLoss.toFixed(2); // Format to 2 decimal places
 
             if (data.profitLoss > 0) {
-                profitLossElement.innerHTML = `Total P&L: <span class="text-success">+₹${profitLossValue}</span>`;
+                profitLossElement.innerHTML = `Year P&L: <span class="text-success">+₹${profitLossValue}</span>`;
             } else if (data.profitLoss < 0) {
-                profitLossElement.innerHTML = `Total P&L: <span class="text-danger">-₹${Math.abs(profitLossValue)}</span>`;
+                profitLossElement.innerHTML = `Year P&L: <span class="text-danger">-₹${Math.abs(profitLossValue)}</span>`;
             } else {
-                profitLossElement.innerHTML = `Total P&L: <span class="text-warning">₹0.00</span>`;
+                profitLossElement.innerHTML = `Year P&L: <span class="text-warning">₹0.00</span>`;
+            }
+        } catch (error) {
+            console.error("Error fetching yearly profit/loss:", error);
+        }
+
+        try {
+            const response = await fetch("/PnL/GetOverallProfitLoss"); // Fetch yearly P&L from the API
+            const data = await response.json();
+
+            let profitLossElement = document.getElementById("overallProfitLoss");
+            let profitLossValue = data.profitLoss.toFixed(2); // Format to 2 decimal places
+
+            if (data.profitLoss > 0) {
+                profitLossElement.innerHTML = `Overall P&L: <span class="text-success">+₹${profitLossValue}</span>`;
+            } else if (data.profitLoss < 0) {
+                profitLossElement.innerHTML = `Overall P&L: <span class="text-danger">-₹${Math.abs(profitLossValue)}</span>`;
+            } else {
+                profitLossElement.innerHTML = `Overall P&L: <span class="text-warning">₹0.00</span>`;
             }
         } catch (error) {
             console.error("Error fetching yearly profit/loss:", error);
