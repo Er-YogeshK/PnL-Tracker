@@ -1,22 +1,53 @@
-@model List<AviatorPnL.Models.DailySummary>
+@model List<PnL.Models.DailySummary>
 @{
     ViewData["Title"] = "Profit & Loss Calendar";
 }
 
-<h2>Profit & Loss Calendar</h2>
+<div class="container mt-4">
+    <!-- Year Filter and Add Entry Button -->
+<div class="d-flex justify-content-between align-items-center">
+    <!-- Year Filter -->
+    <div>
+         <label for="yearFilter" class="fw-bold me-2">Select Year:</label>
+    <select id="yearFilter" class="form-select d-inline-block w-auto">
+        @for (int year = DateTime.Now.Year - 5; year <= DateTime.Now.Year + 5; year++)
+        {
+            <option value="@year" selected="@(year == ViewBag.SelectedYear ? "selected" : null)">
+                @year
+            </option>
+        }
+    </select>
+    </div>
 
-<!-- Add Entry Button -->
-<button id="openModalBtn" class="btn btn-dark">Add Entry</button>
+    <!-- Add Entry Button -->
+    <div>
+        <button id="openModalBtn" class="btn btn-dark">Add Entry</button>
+    </div>
+</div>
+
+</div>
 
 <!-- Calendar Display -->
 <div class="container mt-4">
     <div class="row">
         @for (int month = 1; month <= 12; month++)
         {
+            var monthTransactions = Model.Where(d => d.Date.Month == month);
+            var totalMonthDeposit = monthTransactions.Sum(d => d.Transactions.Sum(t => t.Deposit));
+            var totalMonthWithdrawal = monthTransactions.Sum(d => d.Transactions.Sum(t => t.Withdrawal));
+            var totalMonthProfitLoss = totalMonthWithdrawal - totalMonthDeposit;
+
+            // Color logic for profit or loss
+            string monthColorClass = totalMonthProfitLoss > 0 ? "bg-success" : totalMonthProfitLoss < 0 ? "bg-danger" : "bg-secondary";
+            string profitLossText = totalMonthProfitLoss >= 0 ? $"Profit: {totalMonthProfitLoss}" : $"Loss: {Math.Abs(totalMonthProfitLoss)}";
+
             <div class="col-md-4 mb-4">
                 <div class="card shadow-sm">
-                    <div class="card-header text-center bg-primary text-white">
-                        <h5 class="mb-0">@(new DateTime(DateTime.Now.Year, month, 1).ToString("MMMM"))</h5>
+                    <div class="card-header text-center text-white @monthColorClass">
+                        <h5 class="mb-0">
+                            @(new DateTime(DateTime.Now.Year, month, 1).ToString("MMMM")) 
+                            <br> <small>@profitLossText</small>
+                        </h5>
                     </div>
                     <div class="card-body">
                         <div class="d-flex flex-wrap">
@@ -32,9 +63,9 @@
                                 string colorClass = profitLoss > 0 ? "#9de79d" : profitLoss < 0 ? "#ff8384" : "#f4f4f4";
 
                                 // Tooltip content
-                                var tooltipContent = dailySummary?.Transactions.Any() == true 
-                                    ? string.Join("<br>", dailySummary.Transactions.Select(t => $"Deposit: {t.Deposit}, Withdrawal: {t.Withdrawal}")) 
-                                    : "No transactions";
+                               var tooltipContent = dailySummary?.Transactions.Any() == true
+                                ? $"Total Deposit: {dailySummary.Transactions.Sum(t => t.Deposit)}, Total Withdrawal: {dailySummary.Transactions.Sum(t => t.Withdrawal)}"
+                                : "No transactions";
 
                                 <div class="text-center m-1 position-relative" 
                                      style="width: 40px; height: 40px; line-height: 40px; background-color: @colorClass; border: 1px solid #ccc; font-weight: bold;" 
@@ -56,7 +87,7 @@
 <div class="modal fade" id="entryModal" tabindex="-1" aria-labelledby="entryModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
+            <div class="modal-header bg-dark text-white">
                 <h5 class="modal-title" id="entryModalLabel">Add Transaction</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -129,3 +160,11 @@
         });
     });
 </script>
+
+<script>
+    document.getElementById("yearFilter").addEventListener("change", function () {
+        const selectedYear = this.value;
+        window.location.href = `/?year=${selectedYear}`; // Pass year as a query parameter
+    });
+</script>
+

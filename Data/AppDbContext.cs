@@ -1,7 +1,7 @@
-using AviatorPnL.Models;
+using PnL.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace AviatorPnL.Data
+namespace PnL.Data
 {
     public class AppDbContext : DbContext
     {
@@ -9,5 +9,13 @@ namespace AviatorPnL.Data
 
         public DbSet<Transaction> Transactions { get; set; }
         public DbSet<DailySummary> DailySummaries { get; set; }
+
+        // protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        // {
+        //     if (!optionsBuilder.IsConfigured)
+        //     {
+        //         optionsBuilder.UseSqlite("Data Source=database.db");
+        //     }
+        // }
     }
 }

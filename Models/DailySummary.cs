@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace AviatorPnL.Models
+namespace PnL.Models
 {
     public class DailySummary
     {
@@ -13,5 +13,4 @@ namespace AviatorPnL.Models
 
         public List<Transaction> Transactions { get; set; } = new List<Transaction>();
     }
-
 }

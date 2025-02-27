@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - AviatorPnL</title>
+    <title>@ViewData["Title"] - P&L Tracker</title>
 
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
@@ -14,23 +14,25 @@
     <header>
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
             <div class="container-fluid">
-                <a class="navbar-brand" href="/">Aviator P&L</a>
+                <a class="navbar-brand" href="/">P&L Tracker</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav">
                         <li class="nav-item">
-                            <a class="nav-link" href="/PnL">P&L</a>
+                            <a class="nav-link" href="/PnL">Dashboard</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/Transactions">Manage Transactions</a>
+                            <a class="nav-link" href="/Transactions">Transactions</a>
                         </li>
                     </ul>
+                    <span class="navbar-text ms-auto text-white fw-bold" id="yearlyProfitLoss">
+                        <!-- Profit/Loss will be dynamically loaded -->
+                    </span>
                 </div>
             </div>
         </nav>
-
     </header>
     <div class="container">
         <main role="main" class="pb-3">
@@ -40,7 +42,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2025 - AviatorPnL - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2025 - P&L Tracker - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
@@ -48,5 +50,27 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
+
+<script>
+    document.addEventListener("DOMContentLoaded", async function () {
+        try {
+            const response = await fetch("/PnL/GetYearlyProfitLoss"); // Fetch yearly P&L from the API
+            const data = await response.json();
+
+            let profitLossElement = document.getElementById("yearlyProfitLoss");
+            let profitLossValue = data.profitLoss.toFixed(2); // Format to 2 decimal places
+
+            if (data.profitLoss > 0) {
+                profitLossElement.innerHTML = `Total P&L: <span class="text-success">+₹${profitLossValue}</span>`;
+            } else if (data.profitLoss < 0) {
+                profitLossElement.innerHTML = `Total P&L: <span class="text-danger">-₹${Math.abs(profitLossValue)}</span>`;
+            } else {
+                profitLossElement.innerHTML = `Total P&L: <span class="text-warning">₹0.00</span>`;
+            }
+        } catch (error) {
+            console.error("Error fetching yearly profit/loss:", error);
+        }
+    });
+</script>
 
 </html>

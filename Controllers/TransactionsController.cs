@@ -1,18 +1,21 @@
 using Microsoft.AspNetCore.Mvc;
-using AviatorPnL.Data;
-using AviatorPnL.Models;
+using PnL.Data;
+using PnL.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using PnL.Services;
 
-namespace AviatorPnL.Controllers
+namespace PnL.Controllers
 {
     public class TransactionsController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly IProfitLossService _profitLossService;
 
-        public TransactionsController(AppDbContext context)
+        public TransactionsController(AppDbContext context, IProfitLossService profitLossService)
         {
             _context = context;
+            _profitLossService = profitLossService;
         }
 
         public IActionResult Index()
@@ -40,6 +43,9 @@ namespace AviatorPnL.Controllers
             _context.Transactions.Add(transaction);
             _context.SaveChanges();
 
+            // Update only for the specific date to avoid unnecessary recalculations
+            _profitLossService.CalculateDailyProfitLossForDate(transactionDate);
+
             return Ok(new { message = "Transaction added successfully" });
         }
 
@@ -55,11 +61,14 @@ namespace AviatorPnL.Controllers
             existingTransaction.Withdrawal = transaction.Withdrawal;
 
             _context.SaveChanges();
+
+            // Update only for the specific date to avoid unnecessary recalculations
+            // _profitLossService.CalculateDailyProfitLossForDate(transaction.Date);
             return Ok(new { message = "Transaction updated successfully" });
         }
 
-        [HttpDelete("{id}")]
-        public IActionResult DeleteTransaction(int id)
+        [HttpGet]
+        public IActionResult DeleteTransaction([FromQuery] int id)
         {
             var transaction = _context.Transactions.FirstOrDefault(t => t.Id == id);
             if (transaction == null)
@@ -67,6 +76,9 @@ namespace AviatorPnL.Controllers
 
             _context.Transactions.Remove(transaction);
             _context.SaveChanges();
+
+            // Update only for the specific date to avoid unnecessary recalculations
+            // _profitLossService.CalculateDailyProfitLossForDate(transaction.Date);
 
             return Ok(new { message = "Transaction deleted successfully" });
         }

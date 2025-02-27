@@ -1,9 +1,9 @@
-using AviatorPnL.Data;
-using AviatorPnL.Models;
+using PnL.Data;
+using PnL.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 
-namespace AviatorPnL.Services
+namespace PnL.Services
 {
 
     public class ProfitLossService : IProfitLossService

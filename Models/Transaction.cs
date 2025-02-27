@@ -1,6 +1,6 @@
 using System;
 
-namespace AviatorPnL.Models
+namespace PnL.Models
 {
     public class Transaction
     {

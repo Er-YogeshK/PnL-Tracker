@@ -1,4 +1,4 @@
-namespace AviatorPnL.Services
+namespace PnL.Services
 {
     public interface IProfitLossService
     {

@@ -1,4 +1,4 @@
-namespace AviatorPnL.Controllers
+namespace PnL.Controllers
 {
     public class TransactionEntryDto
     {

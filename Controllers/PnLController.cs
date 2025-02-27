@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
-using AviatorPnL.Data;
-using AviatorPnL.Models;
-using AviatorPnL.Services;
+using PnL.Data;
+using PnL.Models;
+using PnL.Services;
 using System;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 
-namespace AviatorPnL.Controllers
+namespace PnL.Controllers
 {
     public class PnLController : Controller
     {
@@ -19,12 +19,16 @@ namespace AviatorPnL.Controllers
             _profitLossService = profitLossService;
         }
 
-        public IActionResult Index()
+        public IActionResult Index(int? year)
         {
+            int selectedYear = year ?? DateTime.Now.Year; // Default to current year if not provided
+
             var dailySummaries = _context.DailySummaries
-                .Include(d => d.Transactions) // Ensure transactions are loaded
+                .Include(d => d.Transactions)
+                .Where(d => d.Date.Year == selectedYear) // Filter by selected year
                 .ToList();
 
+            ViewBag.SelectedYear = selectedYear; // Pass selected year to the view
             return View(dailySummaries);
         }
 
@@ -54,5 +58,21 @@ namespace AviatorPnL.Controllers
             return Ok(new { message = "Transaction added successfully" });
         }
 
+        [HttpGet]
+        public JsonResult GetYearlyProfitLoss(int? year)
+        {
+            int selectedYear = year ?? DateTime.Now.Year; // Default to current year
+
+            var yearlyTransactions = _context.DailySummaries
+                .Where(d => d.Date.Year == selectedYear)
+                .SelectMany(d => d.Transactions)
+                .ToList();
+
+            decimal totalDeposit = yearlyTransactions.Sum(t => t.Deposit);
+            decimal totalWithdrawal = yearlyTransactions.Sum(t => t.Withdrawal);
+            decimal totalProfitLoss = totalWithdrawal - totalDeposit; // Net P&L
+
+            return Json(new { profitLoss = totalProfitLoss, year = selectedYear });
+        }
     }
 }

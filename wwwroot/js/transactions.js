@@ -42,7 +42,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll(".deleteBtn").forEach(button => {
         button.addEventListener("click", async function () {
             if (confirm("Are you sure?")) {
-                await fetch(`/Transactions/DeleteTransaction/${this.dataset.id}`, { method: "DELETE" });
+                await fetch(`/Transactions/DeleteTransaction?id=${this.dataset.id}`, { method: "GET" });
                 location.reload();
             }
         });
