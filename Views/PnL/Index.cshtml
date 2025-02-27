@@ -1,0 +1,168 @@
+@model List<PnL.Models.DailySummary>
+@{
+    ViewData["Title"] = "Profit & Loss Calendar";
+    int selectedYear = ViewBag.SelectedYear ?? DateTime.Now.Year;
+}
+
+<div class="container mt-4">
+    <!-- Year Filter and Add Entry Button -->
+    <div class="d-flex justify-content-between align-items-center">
+        <!-- Year Filter -->
+        <div>
+            <label for="yearFilter" class="fw-bold me-2">Select Year:</label>
+            <select id="yearFilter" class="form-select d-inline-block w-auto">
+                @for (int year = DateTime.Now.Year - 5; year <= DateTime.Now.Year + 5; year++)
+                {
+                    <option value="@year" selected="@(year == selectedYear ? "selected" : null)">
+                        @year
+                    </option>
+                }
+            </select>
+        </div>
+
+        <!-- Add Entry Button -->
+        <div>
+            <button id="openModalBtn" class="btn btn-dark">Add Entry</button>
+        </div>
+    </div>
+</div>
+
+<!-- Calendar Display -->
+<div class="container mt-4">
+    <div class="row">
+        @for (int month = 1; month <= 12; month++)
+        {
+            var monthTransactions = Model.Where(d => d.Date.Year == selectedYear && d.Date.Month == month);
+            var totalMonthDeposit = monthTransactions.Sum(d => d.Transactions.Sum(t => t.Deposit));
+            var totalMonthWithdrawal = monthTransactions.Sum(d => d.Transactions.Sum(t => t.Withdrawal));
+            var totalMonthProfitLoss = totalMonthWithdrawal - totalMonthDeposit;
+
+            // Color logic for profit or loss
+            string monthColorClass = totalMonthProfitLoss > 0 ? "bg-success" : totalMonthProfitLoss < 0 ? "bg-danger" : "bg-secondary";
+            string profitLossText = totalMonthProfitLoss >= 0 ? $"Profit: {totalMonthProfitLoss}" : $"Loss: {Math.Abs(totalMonthProfitLoss)}";
+
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-header text-center text-white @monthColorClass">
+                        <h5 class="mb-0">
+                            @(new DateTime(selectedYear, month, 1).ToString("MMMM")) 
+                            <br> <small>@profitLossText</small>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex flex-wrap">
+                            @for (int day = 1; day <= DateTime.DaysInMonth(selectedYear, month); day++)
+                            {
+                                var date = new DateTime(selectedYear, month, day);
+                                var dailySummary = Model.FirstOrDefault(d => d.Date.Date == date.Date);
+                                var totalDeposit = dailySummary?.Transactions.Sum(t => t.Deposit) ?? 0;
+                                var totalWithdrawal = dailySummary?.Transactions.Sum(t => t.Withdrawal) ?? 0;
+                                var profitLoss = totalWithdrawal - totalDeposit;
+
+                                // Color logic for day background
+                                string colorClass = profitLoss > 0 ? "#9de79d" : profitLoss < 0 ? "#ff8384" : "#f4f4f4";
+
+                                // Tooltip content
+                                var tooltipContent = dailySummary?.Transactions.Any() == true
+                                    ? $"Total Deposit: {totalDeposit}, Total Withdrawal: {totalWithdrawal}"
+                                    : "No transactions";
+
+                                <div class="text-center m-1 position-relative" 
+                                     style="width: 40px; height: 40px; line-height: 40px; background-color: @colorClass; border: 1px solid #ccc; font-weight: bold;" 
+                                     data-bs-toggle="tooltip" 
+                                     data-bs-html="true" 
+                                     title="@tooltipContent">
+                                    @day
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Modal for Adding Entry -->
+<div class="modal fade" id="entryModal" tabindex="-1" aria-labelledby="entryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title" id="entryModalLabel">Add Transaction</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="entryForm">
+                    <div class="mb-3">
+                        <label for="date" class="form-label">Date:</label>
+                        <input type="date" id="date" name="date" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="deposit" class="form-label">Deposit:</label>
+                        <input type="number" id="deposit" name="deposit" step="0.01" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="withdrawal" class="form-label">Withdrawal:</label>
+                        <input type="number" id="withdrawal" name="withdrawal" step="0.01" class="form-control">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">Save</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript -->
+<script>
+     // Open modal
+    document.getElementById("openModalBtn").addEventListener("click", function () {
+        var myModal = new bootstrap.Modal(document.getElementById("entryModal"));
+        myModal.show();
+    });
+
+    // Handle form submission
+    document.getElementById("entryForm").onsubmit = async function (event) {
+        event.preventDefault();
+
+        const date = document.getElementById("date").value;
+        const deposit = parseFloat(document.getElementById("deposit").value) || 0;
+        const withdrawal = parseFloat(document.getElementById("withdrawal").value) || 0;
+
+        console.log("Submitting data:", { date, deposit, withdrawal }); // Debugging
+
+        try {
+            const response = await fetch("/PnL/AddTransaction", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ date, deposit, withdrawal }),
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+               // alert("Transaction added successfully!");
+                location.reload();
+            } else {
+                alert("Error: " + data.message);
+            }
+        } catch (error) {
+            console.error("Request failed:", error);
+            alert("Something went wrong.");
+        }
+    };
+
+    // Initialize Bootstrap tooltips
+    document.addEventListener("DOMContentLoaded", function () {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+            new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+
+    document.getElementById("yearFilter").addEventListener("change", function () {
+        const selectedYear = this.value;
+        window.location.href = `/PnL/Index?year=${selectedYear}`; // Reload page with selected year
+    });
+</script>

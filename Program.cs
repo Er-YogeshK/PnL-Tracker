@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using AviatorPnL.Models;
-using AviatorPnL.Services;
-using AviatorPnL.Data;
+using PnL.Models;
+using PnL.Services;
+using PnL.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,8 +11,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 // Configure in-memory database
+builder.Services.AddControllersWithViews();
+// Configure SQLite Database
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseInMemoryDatabase("AviatorPnLDB"));
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Register services
 builder.Services.AddScoped<IProfitLossService, ProfitLossService>();
