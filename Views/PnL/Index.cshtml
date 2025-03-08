@@ -67,12 +67,30 @@
                                     ? $"Total Deposit: {totalDeposit}, Total Withdrawal: {totalWithdrawal}"
                                     : "No transactions";
 
+                                // Get the day of the week for the first day of the month
+                                int firstDayOfWeek = (int)new DateTime(selectedYear, month, 1).DayOfWeek;
+                                if (day == 1)
+                                {
+                                    @foreach (var dayName in new[] { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" })
+                                    {
+                                        <div class="text-center m-1" style="width: 40px; font-weight: bold;">@dayName</div>
+                                    }
+                                }
+
+                                if (day == 1)
+                                {
+                                    for (int emptyCell = 0; emptyCell < firstDayOfWeek; emptyCell++)
+                                    {
+                                        <div class="text-center m-1" style="width: 40px; height: 40px;"></div> <!-- Empty cell for alignment -->
+                                    }
+                                }
+
                                 <div class="text-center m-1 position-relative" 
-                                     style="width: 40px; height: 40px; line-height: 40px; background-color: @colorClass; border: 1px solid #ccc; font-weight: bold;" 
-                                     data-bs-toggle="tooltip" 
-                                     data-bs-html="true" 
-                                     title="@tooltipContent">
-                                    @day
+                                    style="width: 40px; height: 40px; line-height: 40px; background-color: @colorClass; border: 1px solid #ccc; font-weight: bold; font-size: 12px;" 
+                                    data-bs-toggle="tooltip" 
+                                    data-bs-html="true" 
+                                    title="@tooltipContent">
+                                    <div>@day</div>
                                 </div>
                             }
                         </div>

@@ -27,7 +27,7 @@ namespace PnL.Controllers
                 transactions = transactions.Where(t => t.Date.Year == year);
             }
 
-            var orderedTransactions = transactions.OrderByDescending(t => t.Date).ToList();
+            var orderedTransactions = transactions.OrderByDescending(t => t.Id).ToList();
             ViewBag.SelectedYear = year ?? -1; // Pass selected year to the view
             return View(orderedTransactions);
         }
